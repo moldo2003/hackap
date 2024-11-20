@@ -1,0 +1,45 @@
+module flagram (
+output wire [3:0] o_w_out,
+input wire i_w_clk,
+input wire [3:0] i_w_address,
+input wire [3:0] i_w_data,
+input wire i_w_we,
+input wire i_w_oe,
+input wire i_w_flags_out
+);
+
+wire [3:0] ram_out;
+ram #(4,4) ram_inst( .o_w_out(ram_out),
+.i_w_in(i_w_data),
+.i_w_address(i_w_address),
+.i_w_we(i_w_we),
+.i_w_oe(i_w_oe),
+.i_w_clk(i_w_clk)
+);
+reg[3:0] flags;
+reg[3:0] flags_out;
+
+always @(*) begin
+flags[0] = ram_out[2]; //S2 - if the bit on the position 2 is set
+flags[1] = ~(^ram_data); // E - if it has an even number of bits set
+flags[2] = |(ram_data); // Z - if all bits are unset
+flags[3] = (ram_data == 3'd7) // SMAX - if the data value is the maximum signed value
+end
+
+always @(posedge i_w_clk)
+if(i_w_oe)
+flags_out <= flags
+assign o_w_out = (i_w_we) ? 4'd0 : ((i_w_oe) ? ram_out : (i_w_flags_out) ? flags_out : 4'd0);
+end
+
+flags[x] = ram_out[3] // S if the sign bit is set
+flags[x] = ^ram_out; // O if it has an odd number of bits set
+flags[x] = !ram_out[2] // C2 if the bit on the position 2 is clear
+flags[x] = ram_out > 4'd4; // G4 if the data value is greater than 4
+flags[x] = ram_out < 4'd4; // L4 if the data value is lower than 4
+flags[x] = (ram_out == 4'd1) || (ram_out == 4'd2) || (ram_out == 4'd4) || (ram_out == 4'd8); // POW if the data value is a power of 2 (1,2,4,8)
+flags[x] = (ram_out == 4'd7) // SMAX if the data value is the maximum signed value
+flags[x] = (ram_out == 4'd8) // SMIN if the data value is the minimum signed value
+flags[x] = (ram_out == 4'd15) // MAX if the data value is the maximum unsigned value
+flags[x] = (ram_out[0] == ram_out[3]) && (ram_out[2] == ram_out[1]); // PAL if the data value is a binary palindrome (0110 -1, 1010-0)
+flags[x] = (ram_out[0] == ram_out[1]) || (ram_out[1] == ram_out[2]) || (ram_out[2] == ram_out[3]) // if there are at least 2 consecutive bits set (1100-1, 0101-0)
