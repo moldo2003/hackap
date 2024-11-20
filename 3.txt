@@ -30,7 +30,7 @@ always @(posedge i_w_clk)
 if(i_w_oe)
 flags_out <= flags
 assign o_w_out = (i_w_we) ? 4'd0 : ((i_w_oe) ? ram_out : (i_w_flags_out) ? flags_out : 4'd0);
-end
+endmodule
 
 flags[x] = ram_out[3] // S if the sign bit is set
 flags[x] = ^ram_out; // O if it has an odd number of bits set
