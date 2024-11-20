@@ -1,0 +1,52 @@
+module fsm(
+output wire o_w_out, // 1 - match SECVENTA, 0 - otherwise
+input wire [1:0] i_w_in, // char input: 0 - 'a', 1 - 'b', 2 - 'c', 3 - 'd'
+input wire i_w_clk, // clock input
+input wire i_w_reset // reset input (active low)
+);
+
+localparam STATE_INITIAL = 4'd0;
+localparam STATE_C = 4'd1;
+localparam STATE_A = 4'd2;
+localparam STATE_DEADLOCK = 4'd3;
+localparam STATE_FINAL = 4'd4;
+
+reg [2:0] act_state, next_state;
+
+always @(posedge i_w_clk or negedge i_w_reset)begin
+if(!i_w_reset)
+act_state <= STATE_INITIAL;
+else act_state <= next_state;
+end
+
+always @(*)begin
+case(act_state)
+STATE_INITIAL: begin
+if(i_w_in == 3'd2)
+next_state <= STATE_C;
+else next_state <= STATE_DEADLOCK;
+end
+STATE_C: begin
+if(i_w_in == 3'd0)
+next_state <= STATE_A;
+else next_state <= STATE_DEADLOCK;
+end
+STATE_A: begin
+if(i_w_in == 3'd2)
+next_state <= STATE_FINAL;
+else next_state <= STATE_DEADLOCK;
+end
+STATE_FINAL: begin
+if(i_w_in == 3'd2)
+next_state <= STATE_FINAL;
+else next_state <= STATE_DEADLOCK;
+end
+STATE_DEADLOCK: begin
+next_state <= STATE_DEADLOCK;
+end
+default: next_state <= STATE_INITIAL;
+endcase
+end
+
+assign o_w_out = (act_state == STATE_FINAL);
+endmodule
